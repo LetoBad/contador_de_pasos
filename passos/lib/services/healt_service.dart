@@ -19,7 +19,7 @@ class HealthService {
   Future<bool> isHealthConnectAvailable() async {
     // A biblioteca 'health' não tem um método direto para verificar o Health Connect.
     // Uma abordagem é verificar a disponibilidade de um tipo de dado.
-    return await _health.isDataTypeAvailable(HealthDataType.STEPS);
+    return _health.isDataTypeAvailable(HealthDataType.STEPS);
   }
 
   /// Solicita permissões para acessar dados de saúde
