@@ -113,4 +113,54 @@ class HealthService {
     // O método hasPermissions pode retornar nulo, então tratamos isso
     return await _health.hasPermissions(_dataTypes) ?? false;
   }
+
+  /// Obtém os dados de passos dos últimos 7 dias (um total por dia)
+  Future<List<PasoDiaData>> getStepsLast7Days() async {
+    final now = DateTime.now();
+    final start = now.subtract(const Duration(days: 7));
+    List<HealthDataPoint> healthData = await _health.getHealthDataFromTypes(
+      startTime: start,
+      endTime: now,
+      types: [HealthDataType.STEPS],
+    );
+
+    // Filtra dados apenas do smartwatch (exclui dados do telefone)
+    List<HealthDataPoint> watchData =
+        healthData.where((dataPoint) {
+          String sourceName = dataPoint.sourceName.toLowerCase();
+          return sourceName.contains('watch') ||
+              sourceName.contains('wear') ||
+              sourceName.contains('galaxy watch') ||
+              sourceName.contains('pixel watch') ||
+              sourceName.contains('fitbit');
+        }).toList();
+    List<HealthDataPoint> dataToProcess =
+        watchData.isNotEmpty ? watchData : healthData;
+
+    // Agrupa por día
+    Map<String, int> stepsPerDay = {};
+    for (var dataPoint in dataToProcess) {
+      if (dataPoint.value is NumericHealthValue) {
+        final date = DateTime(
+          dataPoint.dateFrom.year,
+          dataPoint.dateFrom.month,
+          dataPoint.dateFrom.day,
+        );
+        final key = date.toIso8601String();
+        stepsPerDay[key] =
+            (stepsPerDay[key] ?? 0) +
+            (dataPoint.value as NumericHealthValue).numericValue.toInt();
+      }
+    }
+
+    // Genera la lista de los últimos 7 días (incluyendo días sin datos)
+    List<PasoDiaData> result = [];
+    for (int i = 6; i >= 0; i--) {
+      final day = now.subtract(Duration(days: i));
+      final date = DateTime(day.year, day.month, day.day);
+      final key = date.toIso8601String();
+      result.add(PasoDiaData(totalSteps: stepsPerDay[key] ?? 0, date: date));
+    }
+    return result;
+  }
 }

@@ -10,12 +10,18 @@ class StepsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _hasPermissions = false;
+  List<PasoDiaData>? _stepsHistory;
+  bool _isLoadingHistory = false;
+  String? _errorHistory;
 
   // Getters
   PasoData? get stepData => _stepData;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get hasPermissions => _hasPermissions;
+  List<PasoDiaData>? get stepsHistory => _stepsHistory;
+  bool get isLoadingHistory => _isLoadingHistory;
+  String? get errorHistory => _errorHistory;
 
   /// Inicializa o ViewModel
   Future<void> initialize() async {
@@ -32,6 +38,7 @@ class StepsViewModel extends ChangeNotifier {
       _hasPermissions = await _healthService.hasPermissions();
       if (_hasPermissions) {
         await _loadStepData();
+        await loadStepsHistory();
       }
     } catch (e) {
       _setError('Erro ao inicializar: $e');
@@ -77,6 +84,7 @@ class StepsViewModel extends ChangeNotifier {
   /// Força o recarregamento dos dados
   Future<void> refreshStepData() async {
     await _loadStepData();
+    await loadStepsHistory();
   }
 
   /// Método privado para carregar dados
@@ -95,6 +103,22 @@ class StepsViewModel extends ChangeNotifier {
       _setError('Erro ao carregar dados: $e');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Carga el histórico de pasos de los últimos 7 días
+  Future<void> loadStepsHistory() async {
+    _isLoadingHistory = true;
+    _errorHistory = null;
+    notifyListeners();
+    try {
+      final data = await _healthService.getStepsLast7Days();
+      _stepsHistory = data;
+    } catch (e) {
+      _errorHistory = 'Erro ao carregar histórico: $e';
+    } finally {
+      _isLoadingHistory = false;
+      notifyListeners();
     }
   }
 

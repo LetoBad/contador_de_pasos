@@ -25,3 +25,10 @@ class PasoData {
     };
   }
 }
+
+class PasoDiaData {
+  final int totalSteps;
+  final DateTime date;
+
+  PasoDiaData({required this.totalSteps, required this.date});
+}
