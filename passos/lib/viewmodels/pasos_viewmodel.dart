@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:passos/models/paso_data.dart';
-import 'package:passos/services/healt_service.dart';
+import '../models/paso_data.dart';
+import '../services/healt_service.dart';
 
 class StepsViewModel extends ChangeNotifier {
   final HealthService _healthService = HealthService();
